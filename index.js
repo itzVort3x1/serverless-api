@@ -2,7 +2,13 @@ addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
 
-async function handleRequest(request) {
+const corsHeaders = {
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Headers': 'POST',
+  'Access-Control-Allow-Origin': '*'
+}
+
+const getImages = async request => {
   const {query} = await request.json();
   const resp = await fetch(`https://api.unsplash.com/search/photos?query=${query}`, {
     headers: {
@@ -17,8 +23,20 @@ async function handleRequest(request) {
   }))
   return new Response(JSON.stringify(images), {
     headers: {
-      'Content-type':'application/json'
+      'Content-type':'application/json',
+      ...corsHeaders
     }
   });
+}
+
+async function handleRequest(request) {
+
+  if(request.method === "OPTIONS"){
+    return new Response("OK", { headers: corsHeaders})
+  }
+
+  if(request.method === "POST"){
+    return getImages(request)
+  }
   // return new Response(`Your query was ${query}`);
 }
